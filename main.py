@@ -51,14 +51,16 @@ def main():
 	append_today(metrics)
         print("Sent successfully:")
         print(message)
-    except RuntimeError as e:
-        # Fail loudly: also try to tell Discord something went wrong,
-        # so a broken run doesn't just silently vanish with no trace.
-        error_message = f"\u26a0\ufe0f Daily ECOS check failed: {e}"
+    except Exception as e:
+        # Catch anything, not just RuntimeError -- an uncaught exception
+        # of any other type would skip this block entirely and crash
+        # silently as far as Discord is concerned, which defeats the
+        # whole point of failing loudly.
+        error_message = f"⚠️ Daily ECOS check failed: {type(e).__name__}: {e}"
         print(error_message)
         try:
             send_discord_message(webhook_url, error_message)
-        except RuntimeError:
+        except Exception:
             pass  # the webhook itself may be the problem; already logged above
         sys.exit(1)
 
