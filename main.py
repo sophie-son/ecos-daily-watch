@@ -15,6 +15,7 @@ import sys
 
 from src.fetch import fetch_key_stats
 from src.notify import send_discord_message
+from src.history import append_today
 
 
 def format_message(metrics: list[dict]) -> str:
@@ -47,6 +48,7 @@ def main():
         metrics = fetch_key_stats(api_key)
         message = format_message(metrics)
         send_discord_message(webhook_url, message)
+	append_today(metrics)
         print("Sent successfully:")
         print(message)
     except RuntimeError as e:

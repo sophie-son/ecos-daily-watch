@@ -7,6 +7,8 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed so this job can commit the updated history file back
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
@@ -21,3 +23,15 @@ jobs:
           ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python main.py
+
+      - name: Commit updated history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/history.csv
+          if git diff --cached --quiet; then
+            echo "No history changes to commit"
+          else
+            git commit -m "Update daily history $(date -u +%Y-%m-%d)"
+            git push
+          fi
