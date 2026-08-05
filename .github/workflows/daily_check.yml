@@ -1,12 +1,7 @@
 name: Daily ECOS Check
 
 on:
-  schedule:
-    # 08:00 KST = 23:00 UTC (previous day). Adjust the hour below if
-    # you want a different time -- keep in mind ECOS data itself is
-    # published with roughly a 1-day lag, so running earlier won't
-    # get you a fresher number.
-    - cron: "0 23 * * *"
+  
   workflow_dispatch: {}  # lets you trigger a run manually from the GitHub UI, for testing
 
 jobs:
