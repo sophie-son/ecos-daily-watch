@@ -48,14 +48,10 @@ def main():
         metrics = fetch_key_stats(api_key)
         message = format_message(metrics)
         send_discord_message(webhook_url, message)
-	append_today(metrics)
+        append_today(metrics)
         print("Sent successfully:")
         print(message)
     except Exception as e:
-        # Catch anything, not just RuntimeError -- an uncaught exception
-        # of any other type would skip this block entirely and crash
-        # silently as far as Discord is concerned, which defeats the
-        # whole point of failing loudly.
         error_message = f"⚠️ Daily ECOS check failed: {type(e).__name__}: {e}"
         print(error_message)
         try:
