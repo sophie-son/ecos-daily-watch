@@ -56,6 +56,32 @@ rights, and it's simply more reliable than parsing HTML.
    automatically once a day. You can also trigger it manually from
    the Actions tab (`workflow_dispatch`).
 
+## Debugging notes
+
+Real problems hit while building this — kept here because "handled a production
+integration issue" is a better portfolio line than "followed a tutorial."
+
+### Duplicate daily messages
+
+**Symptom:** Two Discord messages arrived on the same day with identical data
+(Aug 5, 2026).
+
+**Cause:** Two independent triggers were live on the workflow at once —
+GitHub's native `schedule:` cron in the workflow file, and an external
+cron-job.org job calling the same workflow's `workflow_dispatch` endpoint.
+Each fired once a day, with no awareness of the other.
+
+**Diagnosis:** GitHub's Actions run history showed the two runs with
+different trigger types — one `workflow_dispatch` (cron-job.org, on time at
+8:00 AM), one `schedule` (GitHub's own cron, 53 minutes late) — confirming
+two separate trigger paths rather than one trigger misfiring twice.
+
+**Fix:** Removed the `schedule:` block from `daily_check.yml`, leaving
+`workflow_dispatch` as the only trigger. cron-job.org is now the sole
+scheduler, chosen over GitHub's native cron because GitHub's schedule
+trigger is documented to run late under platform load (confirmed here
+directly) and silently disables itself after 60 days without a repo commit.
+
 ## Roadmap
 
 - [x] Fetch + notify pipeline (this version)
