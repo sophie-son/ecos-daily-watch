@@ -82,9 +82,48 @@ scheduler, chosen over GitHub's native cron because GitHub's schedule
 trigger is documented to run late under platform load (confirmed here
 directly) and silently disables itself after 60 days without a repo commit.
 
+### TabError: mixed tabs and spaces in indentation
+
+**Symptom:** A run failed immediately (no output produced) with
+`TabError: inconsistent use of tabs and spaces in indentation`. No Discord
+alert was sent -- this is a syntax-level failure, meaning the file never
+even finishes parsing, so none of the script's own error-handling code
+gets a chance to run.
+
+**Cause:** A manual edit to `main.py` (adding the history-logging call) was
+made in a plain text editor, which inserted a tab character where the rest
+of the file used spaces.
+
+**Fix:** Rewrote `main.py` with fully consistent, space-only indentation.
+
+**Separately:** noticed the error handling only caught `RuntimeError`
+specifically, which would miss other exception types. Broadened it to catch
+any exception, so future *runtime* failures (distinct from parse-time ones
+like this) are more reliably reported to Discord.
+
+### ECOS request timing out on GitHub's runner
+
+**Symptom:** A run failed with `urlopen error timed out` after a 15-second
+wait on the ECOS API call.
+
+**Cause:** ECOS is occasionally slow to respond, especially from GitHub's
+hosted runners. An existing open-source ECOS API client corroborates this --
+it defaults to a 60-second timeout with 5 retries, suggesting this is a
+known characteristic of the API rather than a one-off.
+
+**Fix:** Increased the timeout to 30 seconds and added automatic retries
+(up to 3 attempts, 5 seconds apart) before giving up.
+
+**Verified:** Confirmed via `gh run list` that a subsequent run succeeded,
+and confirmed `data/history.csv` still had only one row for the day despite
+three runs happening that same day -- evidence that the existing
+duplicate-date check in `history.py` correctly prevented bad data even
+while debugging live.
+
+
 ## Roadmap
 
 - [x] Fetch + notify pipeline (this version)
-- [ ] Store daily history in-repo for trend comparison
+- [x] Store daily history in-repo for trend comparison
 - [ ] Flag values that deviate meaningfully from recent norms,
       instead of just reporting raw numbers
