@@ -6,6 +6,8 @@ No auth token needed -- the webhook URL itself is the credential,
 which is why it's passed in as a secret rather than hardcoded.
 """
 
+from __future__ import annotations
+
 import json
 import urllib.request
 import urllib.error

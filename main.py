@@ -10,19 +10,21 @@ hardcoded here):
     DISCORD_WEBHOOK_URL
 """
 
+from __future__ import annotations
+
 import os
 import sys
 
 from src.fetch import fetch_key_stats
 from src.notify import send_discord_message
 from src.history import append_today
+from src.detect import check_deviation
 
 
 def format_message(metrics: list[dict]) -> str:
     lines = ["**오늘의 경제 지표 (한국은행 ECOS)**", ""]
     for m in metrics:
         date_str = m["date"] or ""
-        # CYCLE comes back as YYYYMMDD -- make it readable
         if len(date_str) == 8:
             date_display = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:]}"
         else:
@@ -30,8 +32,11 @@ def format_message(metrics: list[dict]) -> str:
         value = m["value"]
         value_display = f"{value:.2f}" if isinstance(value, (int, float)) else value
 
+        flag_marker = "🔴 " if m.get("flagged") else ""
+        change_note = f" ({m['change_display']} vs 전일)" if m.get("change_display") else ""
+
         lines.append(
-            f"- {m['name_kr']} ({m['label']}): **{value_display}{m['unit']}** ({date_display} 기준)"
+            f"- {flag_marker}{m['name_kr']} ({m['label']}): **{value_display}{m['unit']}**{change_note} ({date_display} 기준)"
         )
     return "\n".join(lines)
 
@@ -46,6 +51,7 @@ def main():
 
     try:
         metrics = fetch_key_stats(api_key)
+        metrics = check_deviation(metrics)
         message = format_message(metrics)
         send_discord_message(webhook_url, message)
         append_today(metrics)
@@ -57,7 +63,7 @@ def main():
         try:
             send_discord_message(webhook_url, error_message)
         except Exception:
-            pass  # the webhook itself may be the problem; already logged above
+            pass
         sys.exit(1)
 
 

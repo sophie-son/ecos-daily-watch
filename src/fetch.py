@@ -10,6 +10,8 @@ economic indicators by name, and our 3 target metrics are always in
 it, updated daily. Confirmed by manual test call against the live API.
 """
 
+from __future__ import annotations
+
 import json
 import time
 import urllib.request

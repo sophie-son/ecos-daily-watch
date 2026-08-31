@@ -6,6 +6,8 @@ building up a running history. This is the "memory" the anomaly
 detection step (planned next) will compare each new day against.
 """
 
+from __future__ import annotations
+
 import csv
 import os
 
