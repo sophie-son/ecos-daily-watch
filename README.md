@@ -120,10 +120,31 @@ three runs happening that same day -- evidence that the existing
 duplicate-date check in `history.py` correctly prevented bad data even
 while debugging live.
 
+## Anomaly detection
+
+Each day's numbers are compared against the previous day and flagged (🔴)
+if the move exceeds a threshold:
+
+| Metric | Threshold |
+|---|---|
+| USD/KRW | ±1.0% |
+| KOSPI | ±5.0% |
+| 3Y Treasury Yield | ±0.10 percentage points |
+
+Thresholds were calibrated from about 3 weeks of real logged data rather
+than guessed upfront -- an early estimate of ±2-3% for KOSPI turned out to
+be far too tight once the actual data showed KOSPI moving ~2.4% on a
+typical day, which would have flagged nearly every single day.
+
+A 7-day rolling-average comparison was also tested and rejected: during a
+genuine multi-week KOSPI rally in the logged data, it produced deviations
+of up to 8% on perfectly ordinary trending days, since a moving average
+lags behind sustained trends. A simple day-over-day comparison avoids that
+failure mode and is easier to reason about with limited history.
+
 
 ## Roadmap
 
-- [x] Fetch + notify pipeline (this version)
+- [x] Fetch + notify pipeline
 - [x] Store daily history in-repo for trend comparison
-- [ ] Flag values that deviate meaningfully from recent norms,
-      instead of just reporting raw numbers
+- [x] Flag values that deviate meaningfully from recent norms
